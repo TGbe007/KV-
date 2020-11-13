@@ -147,8 +147,8 @@ public:
 		delete handler;
 	}
 };
-int main()
+/*int main()
 {
 	KVDBtest test;
 	test.test();
-}
+}*/

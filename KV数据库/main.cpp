@@ -8,7 +8,7 @@
 #include<map>
 #include"KVDBHandler.h"
 using namespace std;
-/*int main()
+int main()
 {
 	cout << "请输入文件名" << endl;
 	string file_name, key, value;
@@ -90,4 +90,4 @@ using namespace std;
 		system("cls");
 	}
 	return 0;
-}*/
+}
