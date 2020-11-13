@@ -142,7 +142,6 @@
     <ClCompile Include="KV数据库.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="源.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="KVDBHandler.h" />
