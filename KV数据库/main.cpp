@@ -7,6 +7,7 @@
 #include<string>
 #include<map>
 #include"KVDBHandler.h"
+#include"logger.h"
 using namespace std;
 int main()
 {

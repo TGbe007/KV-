@@ -7,6 +7,7 @@
 #include<stdio.h>
 #include<string>
 #include<map>
+#include"logger.h"
 
 using namespace std;
 struct Header //定义用来存储key，value长度的结构体
@@ -28,6 +29,8 @@ private:
 	ofstream out;
 	string name;
 	int time;//用来记录执行purge的时间
+	clock_t start, finish;
+	Log log;
 public:
 	KVDBHandler(const std::string& db_file);
 	int Set(const string& key, const string& value);

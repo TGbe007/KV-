@@ -31,9 +31,15 @@ KVDBHandler::KVDBHandler(const std::string& db_file)
 int KVDBHandler::Set(const string& key, const string& value)
 {
 	if (key.length() == 0)
+	{
+		log.write_Error("KVDB_INVALID_KEY");
 		return KVDB_INVALID_KEY;
+	}
 	else
 	{
+		log.write_Time();
+		log.write_Operation("Set");
+		start=clock();
 		out.open(name.c_str(), ios::app | ios::binary | ios::out);
 		Object obj;
 		obj.key = new char[key.length() + 1];
@@ -54,6 +60,15 @@ int KVDBHandler::Set(const string& key, const string& value)
 			purge();
 			time = 0;
 		}
+		finish = clock();
+		ifstream fin(name.c_str(), ios::binary | ios::in);
+		fin.seekg(0, fin.end);
+		int length = fin.tellg();
+		fin.seekg(0, in.beg);
+		double  duration = (double)(finish - start);
+		log.write_Duration(duration);
+		log.write_Filesize(length);
+		fin.close();
 		return KVDB_OK;
 	}
 }
@@ -104,6 +119,7 @@ int KVDBHandler::Display()//打代码用来检验操作结果是否正确的
 int KVDBHandler::purge()
 {
 	ifstream fin(name.c_str(), ios::binary | ios::in);
+	start = clock();
 	map<string, string>maps;
 	map<string, string>::iterator it = maps.begin();
 	fin.seekg(0, fin.end);
@@ -112,10 +128,13 @@ int KVDBHandler::purge()
 	Object obj;
 	if (!fin)
 	{
+		log.write_Error("KVDB_INVALID_AOF_PATH");
 		return KVDB_INVALID_AOF_PATH;
 	}
 	else
-	{
+	{	
+		log.write_Time();
+		log.write_Operation("Purge");
 		while (fin.tellg() != length)
 		{
 			fin.read((char*)(&obj.len), sizeof(int) * 2);
@@ -169,6 +188,10 @@ int KVDBHandler::purge()
 				this->Set((*it).first, (*it).second);
 			}
 		}
+		finish = clock();
+		double  duration = (double)(finish - start);
+		log.write_Duration(duration);
+		log.write_Filesize(length);
 		return KVDB_OK;
 	}
 }
@@ -194,7 +217,10 @@ void KVDBHandler::changefile(const std::string& db_file)
 int KVDBHandler::Get(const string& key, string& value)const
 {
 	if (key.length() == 0)
+	{
+		//log.write_Error("KVDB_INVALID_KEY");
 		return KVDB_INVALID_KEY;
+	}
 	ifstream fin(name.c_str(), ios::binary | ios::in);
 	fin.seekg(0, fin.end);
 	int length = fin.tellg();
