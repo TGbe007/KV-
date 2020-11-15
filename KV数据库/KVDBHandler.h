@@ -30,11 +30,11 @@ private:
 	int time;//用来记录执行purge的时间
 public:
 	KVDBHandler(const std::string& db_file);
-	void Set(const string& key, const string& value);
+	int Set(const string& key, const string& value);
 	int Display();//打代码用来检验操作结果是否正确的
 	int purge();
 	void changefile(const std::string& db_file);
-	void Get(const string& key, string& value)const;
+	int Get(const string& key, string& value)const;
 	void Exit();
-	void Del(const std::string& key);
+	int Del(const std::string& key);
 };

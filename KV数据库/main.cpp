@@ -27,20 +27,35 @@ int main()
 			getline(cin, key);
 			cout << "请输入要插入的Value值:";
 			getline(cin, value);
-			database.Set(key, value);
-			cout << "写入成功，请输入下一个指令" << endl;
+			int state=database.Set(key, value);
+			if (state == 0)
+				cout << "写入成功，请输入下一个指令" << endl;
+			else if (state == 2)
+				cout << "写入失败，key值不能为空" << endl;
 		}
 		else if (order == "Get")
 		{
 			string key;
 			string value;
-			cout << "请输入所寻找的Key值";
+			cout << "请输入所寻找的Key值:";
 			getline(cin, key);
-			database.Get(key, value);
-			if (value.size() != 0)
-				cout << "目标key对应value值为" << value << endl;
-			else
-				cout << "在数据库查不到对应的key值" << endl;
+			int state=database.Get(key, value);
+			if (state == 2)
+			{
+				cout << "读取失败，Key值不能为空" << endl;
+			}
+			else if(state==0)
+			{
+				if (value.size() != 0)
+					cout << "目标key对应value值为" << value << endl;
+				else
+					cout << "在数据库查不到对应的key值" << endl;
+			}
+			else if (state == 1)
+			{
+				cout << "读取失败，寻找不到文件" << endl;
+			}
+			
 		}
 		else if (order == "Change_file")
 		{
@@ -50,12 +65,12 @@ int main()
 		}
 		else if (order == "Display")
 		{
-			int result = database.Display();
-			if (result == 0)
-				cout << "文件为空" << endl;
+			int state = database.Display();
+			if (state == 0)
+				cout << "已经输出全部数据了" << endl;
 			else
 			{
-				cout << "已经输出全部数据了" << endl;
+				cout << "文件不存在" << endl;
 			}
 		}
 		else if (order == "Exit")
@@ -65,21 +80,25 @@ int main()
 		}
 		else if (order == "Del")
 		{
-			cout << "请输入你要删除的Key值" << endl;
+			cout << "请输入你要删除的Key值:" ;
 			string key;
 			getline(cin, key);
-			database.Del(key);
+			int state=database.Del(key);
+			if (state == 2)
+			{
+				cout << "删除失败，Key值不能为空" << endl;
+			}
 		}
 		else if (order == "Purge")
 		{
 			int state = database.purge();
-			if (state == 1)
+			if (state == 0)
 			{
 				cout << "文件已经整理完毕" << endl;
 			}
-			else
+			else if(state==1)
 			{
-				cout << "文件不存在或整理失败" << endl;
+				cout << "文件不存在" << endl;
 			}
 		}
 		else

@@ -7,6 +7,10 @@
 #include<string>
 #include<map>
 #include"KVDBHandler.h"
+const int KVDB_OK = 0;
+const int KVDB_INVALID_AOF_PATH = 1;
+const int KVDB_INVALID_KEY = 2;
+const int KVDB_NO_SPACE_LEFT_ON_DEVICES = 3;
 using namespace std;
 KVDBHandler::KVDBHandler(const std::string& db_file)
 {
@@ -24,27 +28,33 @@ KVDBHandler::KVDBHandler(const std::string& db_file)
 	out.open(name.c_str(), ios::app | ios::binary | ios::out);
 	out.close();
 }
-void KVDBHandler::Set(const string& key, const string& value)
+int KVDBHandler::Set(const string& key, const string& value)
 {
-	out.open(name.c_str(), ios::app | ios::binary | ios::out);
-	Object obj;
-	obj.key = new char[key.length() + 1];
-	obj.value = new char[value.length() + 1];
-	obj.len.key_len = key.length();
-	obj.len.value_len = value.length();
-	strcpy(obj.key, key.c_str());
-	strcpy(obj.value, value.c_str());
-	out.write((char*)(&obj.len), sizeof(int) * 2);
-	out.write(obj.key, key.length());
-	out.write(obj.value, value.length());
-	out.close();
-	delete[]obj.value; //释放new申请的内存
-	delete[]obj.key;
-	time++;
-	if (time == 20)
+	if (key.length() == 0)
+		return KVDB_INVALID_KEY;
+	else
 	{
-		purge();
-		time = 0;
+		out.open(name.c_str(), ios::app | ios::binary | ios::out);
+		Object obj;
+		obj.key = new char[key.length() + 1];
+		obj.value = new char[value.length() + 1];
+		obj.len.key_len = key.length();
+		obj.len.value_len = value.length();
+		strcpy(obj.key, key.c_str());
+		strcpy(obj.value, value.c_str());
+		out.write((char*)(&obj.len), sizeof(int) * 2);
+		out.write(obj.key, key.length());
+		out.write(obj.value, value.length());
+		out.close();
+		delete[]obj.value; //释放new申请的内存
+		delete[]obj.key;
+		time++;
+		if (time == 20)
+		{
+			purge();
+			time = 0;
+		}
+		return KVDB_OK;
 	}
 }
 int KVDBHandler::Display()//打代码用来检验操作结果是否正确的
@@ -52,7 +62,7 @@ int KVDBHandler::Display()//打代码用来检验操作结果是否正确的
 	ifstream fin(name.c_str(), ios::binary | ios::in);
 	if (!fin)
 	{
-		return 0;
+		return KVDB_INVALID_AOF_PATH;
 	}
 	fin.seekg(0, fin.end);
 	int length = fin.tellg();
@@ -80,7 +90,7 @@ int KVDBHandler::Display()//打代码用来检验操作结果是否正确的
 		}
 		if (obj.len.value_len == -1)
 		{
-			delete []obj.key;
+			delete[]obj.key;
 		}
 		else
 		{
@@ -89,11 +99,10 @@ int KVDBHandler::Display()//打代码用来检验操作结果是否正确的
 		}
 	}
 	fin.close();
-	return 1;
+	return KVDB_OK;
 }
 int KVDBHandler::purge()
 {
-	Display();
 	ifstream fin(name.c_str(), ios::binary | ios::in);
 	map<string, string>maps;
 	map<string, string>::iterator it = maps.begin();
@@ -103,7 +112,7 @@ int KVDBHandler::purge()
 	Object obj;
 	if (!fin)
 	{
-		return 0;
+		return KVDB_INVALID_AOF_PATH;
 	}
 	else
 	{
@@ -112,20 +121,20 @@ int KVDBHandler::purge()
 			fin.read((char*)(&obj.len), sizeof(int) * 2);
 			obj.key = new char[obj.len.key_len + 1];
 			if (obj.len.value_len == -1)
-			{	
+			{
 				obj.value = new char[1];
 				memset(obj.key, 0, obj.len.key_len + 1);
 				memset(obj.value, 0, 1);
 				fin.read(obj.key, obj.len.key_len);
 			}
-			else 
+			else
 			{
 				obj.value = new char[obj.len.value_len + 1];
 				memset(obj.key, 0, obj.len.key_len + 1);
 				memset(obj.value, 0, obj.len.value_len + 1);
 				fin.read(obj.key, obj.len.key_len);
 				fin.read(obj.value, obj.len.value_len);
-				
+
 			}
 			if (obj.len.value_len == -1)
 			{
@@ -144,8 +153,8 @@ int KVDBHandler::purge()
 						maps.insert(pair<string, string>(obj.key, obj.value));
 					else
 					{
-							it = maps.find(obj.key);
-							(*it).second = obj.value;
+						it = maps.find(obj.key);
+						(*it).second = obj.value;
 					}
 				}
 			}
@@ -160,7 +169,7 @@ int KVDBHandler::purge()
 				this->Set((*it).first, (*it).second);
 			}
 		}
-		return 1;
+		return KVDB_OK;
 	}
 }
 void KVDBHandler::changefile(const std::string& db_file)
@@ -182,8 +191,10 @@ void KVDBHandler::changefile(const std::string& db_file)
 	out.open(name.c_str(), ios::app | ios::binary | ios::out);
 	out.close();
 }
-void KVDBHandler::Get(const string& key, string& value)const
+int KVDBHandler::Get(const string& key, string& value)const
 {
+	if (key.length() == 0)
+		return KVDB_INVALID_KEY;
 	ifstream fin(name.c_str(), ios::binary | ios::in);
 	fin.seekg(0, fin.end);
 	int length = fin.tellg();
@@ -191,7 +202,7 @@ void KVDBHandler::Get(const string& key, string& value)const
 	Object obj;
 	if (!fin)
 	{
-		cout << "error" << endl;
+		return KVDB_INVALID_AOF_PATH;
 	}
 	else
 	{
@@ -217,7 +228,7 @@ void KVDBHandler::Get(const string& key, string& value)const
 		}
 	}
 	fin.close();
-	return;
+	return KVDB_OK;
 }
 void KVDBHandler::Exit()
 {
@@ -225,32 +236,39 @@ void KVDBHandler::Exit()
 	in.close();
 	cout << "数据库关闭成功，正在退出" << endl;
 }
-void KVDBHandler::Del(const std::string& key)
+int KVDBHandler::Del(const std::string& key)
 {
 	out.open(name.c_str(), ios::app | ios::binary | ios::out);
 	Object obj;
 	string value;
-	this->Get(key, value);
-	if (value.size() != 0)
-	{
-		obj.key = new char[key.length() + 1];
-		memset(obj.key, 0, key.length() + 1);
-		strcpy(obj.key, key.c_str());
-		obj.len.value_len = -1;
-		obj.len.key_len = key.length();
-		out.write((char*)(&obj.len), sizeof(int) * 2);
-		out.write(obj.key, key.length());
-		cout << "Key值为" << key << "对应的数据已被删除" << endl;
-		delete[]obj.key;
-	}
+	if (key.length() == 0)
+		return KVDB_INVALID_KEY;
 	else
-		cout << "文件中没有可删除的Key值" << endl;
-	
-	out.close();
-	time++;
-	if (time ==20)
 	{
-		purge();
-		time = 0;
+		this->Get(key, value);
+		if (value.size() != 0)
+		{
+			obj.key = new char[key.length() + 1];
+			memset(obj.key, 0, key.length() + 1);
+			strcpy(obj.key, key.c_str());
+			obj.len.value_len = -1;
+			obj.len.key_len = key.length();
+			out.write((char*)(&obj.len), sizeof(int) * 2);
+			out.write(obj.key, key.length());
+			cout << "Key值为" << key << "对应的数据已被删除" << endl;
+			delete[]obj.key;
+		}
+		else
+			cout << "文件中没有可删除的Key值" << endl;
+
+		out.close();
+		time++;
+		if (time == 20)
+		{	
+			purge();
+			time = 0;
+		}
+		return KVDB_OK;
 	}
+	
 }
