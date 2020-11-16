@@ -10,18 +10,10 @@
 #include<fstream>
 #include <io.h>
 using namespace std;
-class Log
-{
-	private:
-		string name;
-		ifstream in;
-		ofstream out;	
-	public:
-		Log();
-		void write_Filesize(int length);
-		void write_Duration(double duration);
-		void write_Operation(const string operation);
-		void write_Time();
-		void write_Error(const string &type);
-};
+void Createlog(const string &log_file);
+void write_Filesize(const string &log_name,int length);
+void write_Duration(const string &log_name,double duration);
+void write_Operation(const string &log_name,const string operation);
+void write_Time(const string &log_name);
+void write_Error(const string &log_name,const string &type);
 

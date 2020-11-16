@@ -15,30 +15,31 @@ using namespace std;
 KVDBHandler::KVDBHandler(const std::string& db_file)
 {
 	time = 0;
+	log_Name = db_file + "_log.txt";
 	name = db_file + ".txt";
 	if (_access(name.c_str(), 0) == -1)
 	{
 		ofstream fout(name.c_str(), ios::app);
 		cout << "数据库不存在，已创建数据库" << name << endl;
+		fout.close();
 	}
 	else
 	{
 		cout << "已打开数据库" << name << endl;
 	}
-	out.open(name.c_str(), ios::app | ios::binary | ios::out);
-	out.close();
+	Createlog(log_Name);
 }
 int KVDBHandler::Set(const string& key, const string& value)
 {
+	write_Time(log_Name);
+	write_Operation(log_Name,"Set");
 	if (key.length() == 0)
 	{
-		log.write_Error("KVDB_INVALID_KEY");
+		write_Error(log_Name,"KVDB_INVALID_KEY");
 		return KVDB_INVALID_KEY;
 	}
 	else
 	{
-		log.write_Time();
-		log.write_Operation("Set");
 		start=clock();
 		out.open(name.c_str(), ios::app | ios::binary | ios::out);
 		Object obj;
@@ -60,14 +61,13 @@ int KVDBHandler::Set(const string& key, const string& value)
 			purge();
 			time = 0;
 		}
-		finish = clock();
 		ifstream fin(name.c_str(), ios::binary | ios::in);
 		fin.seekg(0, fin.end);
 		int length = fin.tellg();
-		fin.seekg(0, in.beg);
+		finish = clock();
 		double  duration = (double)(finish - start);
-		log.write_Duration(duration);
-		log.write_Filesize(length);
+		write_Duration(log_Name,duration);
+		write_Filesize(log_Name,length);
 		fin.close();
 		return KVDB_OK;
 	}
@@ -118,6 +118,8 @@ int KVDBHandler::Display()//打代码用来检验操作结果是否正确的
 }
 int KVDBHandler::purge()
 {
+	write_Time(log_Name);
+	write_Operation(log_Name,"Purge");
 	ifstream fin(name.c_str(), ios::binary | ios::in);
 	start = clock();
 	map<string, string>maps;
@@ -128,13 +130,11 @@ int KVDBHandler::purge()
 	Object obj;
 	if (!fin)
 	{
-		log.write_Error("KVDB_INVALID_AOF_PATH");
+		write_Error(log_Name,"KVDB_INVALID_AOF_PATH");
 		return KVDB_INVALID_AOF_PATH;
 	}
 	else
 	{	
-		log.write_Time();
-		log.write_Operation("Purge");
 		while (fin.tellg() != length)
 		{
 			fin.read((char*)(&obj.len), sizeof(int) * 2);
@@ -190,8 +190,8 @@ int KVDBHandler::purge()
 		}
 		finish = clock();
 		double  duration = (double)(finish - start);
-		log.write_Duration(duration);
-		log.write_Filesize(length);
+		write_Duration(log_Name,duration);
+		write_Filesize(log_Name,length);
 		return KVDB_OK;
 	}
 }
@@ -216,9 +216,12 @@ void KVDBHandler::changefile(const std::string& db_file)
 }
 int KVDBHandler::Get(const string& key, string& value)const
 {
+	write_Time(log_Name);
+	write_Operation(log_Name, "Get");
+	clock_t start_get = clock();
 	if (key.length() == 0)
 	{
-		//log.write_Error("KVDB_INVALID_KEY");
+		write_Error(log_Name,"KVDB_INVALID_KEY");
 		return KVDB_INVALID_KEY;
 	}
 	ifstream fin(name.c_str(), ios::binary | ios::in);
@@ -228,6 +231,7 @@ int KVDBHandler::Get(const string& key, string& value)const
 	Object obj;
 	if (!fin)
 	{
+		write_Error(log_Name, "KVDB_INVALID_AOF_PATH");
 		return KVDB_INVALID_AOF_PATH;
 	}
 	else
@@ -254,6 +258,10 @@ int KVDBHandler::Get(const string& key, string& value)const
 		}
 	}
 	fin.close();
+	clock_t finish_get = clock();
+	double  duration = (double)(finish_get - start_get);
+	write_Duration(log_Name, duration);
+	write_Filesize(log_Name, length);
 	return KVDB_OK;
 }
 void KVDBHandler::Exit()
@@ -264,11 +272,18 @@ void KVDBHandler::Exit()
 }
 int KVDBHandler::Del(const std::string& key)
 {
+	write_Time(log_Name);
+	write_Operation(log_Name, "Del");
+	start = clock();
 	out.open(name.c_str(), ios::app | ios::binary | ios::out);
 	Object obj;
 	string value;
 	if (key.length() == 0)
+	{
+		write_Error(log_Name, "KVDB_INVALID_KEY");
 		return KVDB_INVALID_KEY;
+	}
+		
 	else
 	{
 		this->Get(key, value);
@@ -288,6 +303,14 @@ int KVDBHandler::Del(const std::string& key)
 			cout << "文件中没有可删除的Key值" << endl;
 
 		out.close();
+		ifstream fin(name.c_str(), ios::binary | ios::in);
+		fin.seekg(0, fin.end);
+		int length = fin.tellg();
+		fin.close();
+		finish = clock();
+		double  duration = (double)(finish - start);
+		write_Duration(log_Name, duration);
+		write_Filesize(log_Name, length);
 		time++;
 		if (time == 20)
 		{	

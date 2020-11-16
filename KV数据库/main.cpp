@@ -9,7 +9,7 @@
 #include"KVDBHandler.h"
 #include"logger.h"
 using namespace std;
-int main()
+/*int main()
 {
 	cout << "请输入文件名" << endl;
 	string file_name, key, value;
@@ -110,4 +110,4 @@ int main()
 		system("cls");
 	}
 	return 0;
-}
+}*/

@@ -30,7 +30,7 @@ private:
 	string name;
 	int time;//用来记录执行purge的时间
 	clock_t start, finish;
-	Log log;
+	string log_Name;
 public:
 	KVDBHandler(const std::string& db_file);
 	int Set(const string& key, const string& value);

@@ -1,44 +1,49 @@
 #include"logger.h"
 #include<fstream>
-void Log::write_Operation(const string operation)
+void Createlog(const string& log_file)
 {
-	out.open(name.c_str(), ios::app | ios::out);
+	if (_access(log_file.c_str(), 0) == -1)
+	{
+		ofstream fout(log_file.c_str(), ios::app);
+		fout.close();
+	}
+}
+void write_Operation(const string& log_name, const string operation)
+{
+	ofstream out;
+	out.open(log_name.c_str(), ios::app | ios::out);
 	out << " " << operation << "操作";
 	out.close();
 }
-void Log::write_Filesize(int length)
+void write_Filesize(const string &log_name,int length)
 {
-	out.open(name.c_str(), ios::app | ios::out);
-	out << " 此时文件的大小为" << length;
+	ofstream out;
+	out.open(log_name.c_str(), ios::app | ios::out);
+	out << " 此时文件的大小为" << length<<endl;
 	out.close();
 }
-void Log::write_Duration(double duration)
+void write_Duration(const string& log_name, double duration)
 {
-	out.open(name.c_str(), ios::app | ios::out);
-	out << " 运行花费时间" << duration * 1000 << "ms";
+	ofstream out;
+	out.open(log_name.c_str(), ios::app | ios::out);
+	out << " 运行花费时间" << duration  << "ms";
 	out.close();
 }
-void Log::write_Time()
+void write_Time(const string& log_name)
 {
-	out.open(name.c_str(), ios::app | ios::out);
+	ofstream out;
+	out.open( log_name.c_str(),ios::app | ios::out);
 	time_t timep;
 	struct tm* p;
 	time(&timep);
 	p = gmtime(&timep);
 	out << p->tm_year + 1900 << "-" << p->tm_mon + 1 << "-" << p->tm_mday << " " << p->tm_hour + 8 << ":" << p->tm_min << ":" << p->tm_sec;
+	out.close();
 }
-Log::Log()
+void write_Error(const string &log_name,const string &type)
 {
-	name = "log.txt";
-	if (_access(name.c_str(), 0) == -1)
-	{
-		ofstream fout(name.c_str(), ios::app);
-		fout.close();
-	}
-}
-void Log::write_Error(const string &type)
-{
-	out.open(name.c_str(), ios::app | ios::out);
+	ofstream out;
+	out.open(log_name.c_str(), ios::app | ios::out);
 	out << "发生错误,类型为" << type << endl;
 	out.close();
 }
