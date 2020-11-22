@@ -1,10 +1,12 @@
 #include"logger.h"
 #include<fstream>
-void Createlog(const string& log_file)
+void Createlog(const string& log_file,const string &file_name)
 {
 	if (_access(log_file.c_str(), 0) == -1)
 	{
 		ofstream fout(log_file.c_str(), ios::app);
+		write_Time(log_file);
+		fout << " ´ò¿ªÁË" << file_name << endl;
 		fout.close();
 	}
 }

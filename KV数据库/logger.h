@@ -10,7 +10,7 @@
 #include<fstream>
 #include <io.h>
 using namespace std;
-void Createlog(const string &log_file);
+void Createlog(const string &log_file,const string&file_name);
 void write_Filesize(const string &log_name,int length);
 void write_Duration(const string &log_name,double duration);
 void write_Operation(const string &log_name,const string operation);

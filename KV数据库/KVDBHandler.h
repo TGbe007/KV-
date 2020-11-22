@@ -28,16 +28,20 @@ private:
 	ifstream in;
 	ofstream out;
 	string name;
-	int time;//用来记录执行purge的时间
+	int purge_time;//用来记录执行purge的时间
 	clock_t start, finish;
 	string log_Name;
+	map<string, string>index_maps;
+
 public:
 	KVDBHandler(const std::string& db_file);
+	void Create_maps();
 	int Set(const string& key, const string& value);
 	int Display();//打代码用来检验操作结果是否正确的
 	int purge();
 	void changefile(const std::string& db_file);
-	int Get(const string& key, string& value)const;
+	int Get(const string& key, string& value);
 	void Exit();
 	int Del(const std::string& key);
+	void modify_maps(const string&order,const string&key,const string&value);
 };
