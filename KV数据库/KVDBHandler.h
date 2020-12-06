@@ -15,12 +15,6 @@ struct Header //定义用来存储key，value长度的结构体
 	int key_len;
 	int value_len;
 };
-struct Object //用来存储key值，value值，和相应长度的结构体
-{
-	char* value;
-	char* key;
-	Header len;
-};
 
 class KVDBHandler
 {
@@ -31,7 +25,9 @@ private:
 	int purge_time;//用来记录执行purge的时间
 	clock_t start, finish;
 	string log_Name;
+	string Warning_log;
 	map<string, string>index_maps;
+	int Getsize_num;
 
 public:
 	KVDBHandler(const std::string& db_file);
@@ -44,4 +40,8 @@ public:
 	void Exit();
 	int Del(const std::string& key);
 	void modify_maps(const string&order,const string&key,const string&value);
+	int Get_size(ifstream &fin);
+	void Write_filesize();
 };
+void Write(const string& name, const string& key, const string& value,string order);
+
