@@ -8,6 +8,7 @@
 #include<map>
 #include"KVDBHandler.h"
 #include<time.h>
+#include"Minheap.h"
 const int KVDB_OK = 0;
 const int KVDB_INVALID_AOF_PATH = 1;
 const int KVDB_INVALID_KEY = 2;
@@ -274,6 +275,25 @@ int KVDBHandler::Del(const std::string& key)
 		modify_maps("Del", key, value);
 		return KVDB_OK;
 	}
+
+}
+int KVDBHandler::expires(const std::string & key, int n)
+{
+	Dead D;
+	time_t timep;
+	struct tm* p;
+	time(&timep);
+	p = gmtime(&timep);
+	D.key = key;
+	D.time.year = p->tm_year + 1900;
+	D.time.month = p->tm_mon + 1;
+	D.time.day = p->tm_mday;
+	D.time.hour = p->tm_hour + 8;
+	D.time.minute = p->tm_min;
+	D.time.second=p->tm_sec;
+	add(D.time, n);
+	minHeap.InsertNode(D);
+	return 0;
 }
 int KVDBHandler::Get_size(ifstream &fin)
 {

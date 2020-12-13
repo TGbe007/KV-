@@ -28,6 +28,7 @@ private:
 	string Warning_log;
 	map<string, string>index_maps;
 	int Getsize_num;
+	MinHeap minHeap;
 
 public:
 	KVDBHandler(const std::string& db_file);
@@ -42,6 +43,7 @@ public:
 	void modify_maps(const string&order,const string&key,const string&value);
 	int Get_size(ifstream &fin);
 	void Write_filesize();
+	int expires(const std::string& key, int n);
 };
 void Write(const string& name, const string& key, const string& value,string order);
 
