@@ -16,15 +16,15 @@ public:
 	{
 		handler = new KVDBHandler("test");
 		srand((unsigned)time(NULL));
-		key = new string[100];
-		value = new string[100];
+		key = new string[30000];
+		value = new string[30000];
 		len = 0;
 		opcnt = 0;
 	}
 	void randomString(string& p)//Éú³ÉËæ»ú×Ö·û´®
 	{
 		p.clear();
-		int len = rand() % 20 + 1;
+		int len = rand() % 16 + 1;
 		for (int j = 0; j < len; j++)
 		{
 			int a;
@@ -46,11 +46,11 @@ public:
 	void test()
 	{
 		int op = 0;
-		while (opcnt < 300 || len < 100)
+		while (opcnt < 60000 || len < 30000)
 		{
 			if (op == 0)//set
 			{
-				if (len < 80)
+				if (len < 20000)
 				{
 					randomString(key[len]);
 				}
@@ -122,15 +122,15 @@ public:
 	}
 	int randomop()
 	{
-		if (len < 20)
+		if (len < 2000)
 		{
 			return 0;
 		}
-		else if (len < 80)
+		else if (len < 20000)
 		{
 			return rand() % 3;
 		}
-		else if (len < 100)
+		else if (len < 30000)
 		{
 			int result = rand() % 2;
 			return result == 0 ? result : result + 1;

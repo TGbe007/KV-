@@ -20,9 +20,9 @@ using namespace std;
 	{
 		string order;
 		cout << "- - - - - - - - - -" << endl << "进行写操作请输入：Set" << endl << "进行读操作请输入：Get" << endl << "进行删除操作请输入：Del" << endl << "更换文件请输入:Change_file" << endl;
-		cout << "遍历数据库元素请输入：Display" << endl << "如果要整理文件请输入:Purge" << endl << "退出数据库请输入：Exit" << endl << "- - - - - - - - - -" << endl << "请输入指令：";
+		cout << "遍历数据库元素请输入：Display" <<endl<<"给Key值设置生存周期请输入：Expires"<< endl << "如果要整理文件请输入:Purge" << endl << "退出数据库请输入：Exit" << endl << "- - - - - - - - - -" << endl << "请输入指令：";
 		getline(cin, order);
-		if (order == "Set")
+	if (order == "Set")
 		{
 			cout << "请输入要插入的Key值:";
 			getline(cin, key);
@@ -89,6 +89,21 @@ using namespace std;
 			{
 				cout << "删除失败，Key值不能为空" << endl;
 			}
+		}
+		else if (order == "Expires")
+		{
+			cout << "请输入你要设置生存时间的Key值:";
+			string key;
+			getline(cin, key);
+			int n;
+			cout << "请输入你要设置的秒数:";
+			cin >> n;
+			getchar();
+			int state = database.expires(key, n);
+			if (state == 0)
+				cout << "设置成功" << endl;
+			else if (state == 2)
+				cout << "没有相应的Key值" << endl;
 		}
 		else if (order == "Purge")
 		{

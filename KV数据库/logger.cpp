@@ -17,7 +17,7 @@ void Createlog(const string& log_file,const string &file_name,const string &warn
 		out.close();
 	}
 }
-void write_Operation(const string& log_name, const string operation)
+void write_Operation(const string& log_name, const string operation,const string key,const string value)
 {
 	ofstream out;
 	out.open(log_name.c_str(), ios::app | ios::out);
@@ -29,6 +29,18 @@ void write_Operation(const string& log_name, const string operation)
 		out << "purge操作已完成" << endl;
 	else
 		out << " " << operation << "操作";
+	if (operation == "Set")
+	{
+		out << " 写入的Key值为:" << key << " " << " value值为: " << value;
+	}
+	else if(operation == "Get")
+	{
+		out << " 读取的Key值为" << key << " ";
+	}
+	else if (operation == "Del")
+	{
+		out << " 删除的Key值为" << key << " ";
+	}
 	out.close();
 }
 void write_Filesize(const string &log_name,int length)
