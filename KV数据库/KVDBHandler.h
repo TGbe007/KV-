@@ -36,6 +36,7 @@ struct cmp
 class KVDBHandler
 {
 private:
+	//LRUCache Lc;
 	ifstream in;
 	ofstream out;
 	string name;
@@ -68,5 +69,5 @@ public:
 	int Expires_Get(const string& key, int offset);//主要用来初始化时，来判断Key是否真的过期，以此来判断是否要在原文件里删除
 	void Expires_Del();//删除掉文件中过期的元素
 };
-int Write(const string& name, const string& key, const string& value,string order);
+int Write(const string& name, const string& key, const string& value,string order,ofstream &out);
 

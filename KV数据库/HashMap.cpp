@@ -2,7 +2,7 @@
 #include"HashMap.h"
 void HashMap::add(const string& key, int offset)
 {
-	int n = getHash(key.c_str());
+		int n = getHash(key.c_str());
 		ListNode* N = Hashmap[n];
 		while (true)
 		{
@@ -123,3 +123,47 @@ HashMap:: ~HashMap()
 		}
 	}
 }
+/*int HashMap::GetNode(const string &key,LRUNode **node)
+{
+	int n = getHash(key.c_str());
+	ListNode* N = Hashmap[n];
+	while (true)
+	{
+		if (N->_key == key)
+		{
+			if (N->node == NULL)
+			{
+				node = NULL;
+				return 0;
+			}
+			else
+			{
+				(*node) = N->node;
+				return 1;
+			}
+		}
+		if (N->next == NULL)
+		{
+			node = NULL;
+			return 2;
+		}
+		N = N->next;
+	}
+}
+void HashMap::SetNode(const string& key,LRUNode *Node,string order)
+{
+	int n = getHash(key.c_str());
+	ListNode* N = Hashmap[n];
+	while (true)
+	{
+		if (N->_key == key)
+		{
+			if (order == "erase")
+				N->node = NULL;
+			else
+				N->node = Node;
+			break;
+		}
+		N = N->next;
+	}
+}*/

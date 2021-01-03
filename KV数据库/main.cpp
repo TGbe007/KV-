@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+/*#define _CRT_SECURE_NO_WARNINGS
 #include<iostream>
 #include<fstream> 
 #include<cstring>
@@ -9,7 +9,7 @@
 #include"KVDBHandler.h"
 #include"logger.h"
 using namespace std;
-/*int main()
+int main()
 {
 	cout << "请输入文件名" << endl;
 	string file_name, key, value;
