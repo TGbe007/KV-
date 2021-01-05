@@ -1,4 +1,4 @@
-/* #pragma once
+/*#pragma once
 #include<iostream>
 #include"HashMap.h"
 using namespace std;
@@ -16,14 +16,15 @@ struct LRUNode
 };
 class LRUCache
 {
-private:
-	int capacity;
-	int size;
-	LRUNode* head, * tail;
-	void attach(LRUNode* node);
-	void detach(LRUNode* node);
-public:
-	LRUCache();
-	void Put(string key, string value, HashMap& hashmap_);
-	int Get(const string& key, string& value, HashMap& hashmap_);
-}; */
+	private:
+		int capacity;
+		int size;
+		LRUNode* head, * tail;
+		void attach(LRUNode *node);
+		void detach(LRUNode* node);
+	public:
+		LRUCache();
+		void Put(string key, string value, HashMap& hashmap_);
+		int Get(const string& key, string& value, HashMap& hashmap_);
+};*/
+#pragma once

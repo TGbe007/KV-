@@ -2,23 +2,23 @@
 #include"HashMap.h"
 void HashMap::add(const string& key, int offset)
 {
-		int n = getHash(key.c_str());
-		ListNode* N = Hashmap[n];
-		while (true)
+	int n = getHash(key.c_str());
+	ListNode* N = Hashmap[n];
+	while (true)
+	{
+		if (N->_key == key)//证明本来存在了，就修改offset
 		{
-			if (N->_key == key)
-			{
-				N->_offset = offset;
-				break;
-			}
-			if (N->next == NULL)
-			{
-				ListNode* P = new ListNode(key, offset);
-				N->next = P;
-				break;
-			}
-			N = N->next;
+			N->_offset = offset;
+			break;
 		}
+		if (N->next == NULL)//证明不存在，就插入
+		{
+			ListNode* P = new ListNode(key, offset);
+			N->next = P;
+			break;
+		}
+		N = N->next;
+	}
 }
 int HashMap::getHash(const char* str)
 {
@@ -28,7 +28,7 @@ int HashMap::getHash(const char* str)
 	{
 		hash = hash * seed + (*str++);
 	}
-	return ((hash & 0x7FFFFFFF) % 99991);
+	return ((hash & 0x7FFFFFFF) % 99991);//这里取余随着数据大小，找到范围内最大的那一个素数
 }
 void HashMap::del(const string& key)
 {
@@ -36,14 +36,14 @@ void HashMap::del(const string& key)
 	ListNode* N = Hashmap[n];
 	while (true)
 	{
-		if (N ->next->_key == key)
+		if (N->next->_key == key)//则找到key了
 		{
-			if (N->next->next == NULL)
+			if (N->next->next == NULL)//判断key的后一个是否存在，如果不存在则直接删除该节点
 			{
 				N->next = NULL;
 				return;
 			}
-			else
+			else//后一个节点存在，则直接让N->next指向后一个
 			{
 				N->next = N->next->next;
 				return;
@@ -59,11 +59,11 @@ int HashMap::get(const string& key)
 	ListNode* N = Hashmap[n];
 	while (true)
 	{
-		if (N->_key == key)
+		if (N->_key == key)//key相同即找到了，返回offset
 		{
 			return N->_offset;
 		}
-		if (N->next == NULL)
+		if (N->next == NULL)//则证明找不到了，返回-1；
 		{
 			return -1;
 		}
@@ -78,9 +78,9 @@ HashMap::HashMap()
 		Hashmap[i] = new ListNode();
 	}
 }
-void HashMap::Get_offset_order(int *offset_order)
+void HashMap::Get_offset_order(int* offset_order)//用来给Offset排序
 {
-	int j=0,k;
+	int j = 0, k;
 	for (int i = 0; i < 200000; i++)
 	{
 		if (Hashmap[i]->next != NULL)
@@ -100,7 +100,7 @@ void HashMap::Get_offset_order(int *offset_order)
 				j++;
 				T = T->next;
 			}
-			
+
 		}
 	}
 }

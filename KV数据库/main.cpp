@@ -1,6 +1,6 @@
-/*#define _CRT_SECURE_NO_WARNINGS
+#define _CRT_SECURE_NO_WARNINGS
 #include<iostream>
-#include<fstream> 
+#include<fstream>
 #include<cstring>
 #include<io.h>
 #include<stdio.h>
@@ -56,7 +56,7 @@ int main()
 			{
 				cout << "读取失败，寻找不到文件" << endl;
 			}
-			
+
 		}
 		else if (order == "Change_file")
 		{
@@ -125,4 +125,4 @@ int main()
 		system("cls");
 	}
 	return 0;
-}*/
+}

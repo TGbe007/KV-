@@ -68,4 +68,3 @@ void LRUCache::detach(LRUNode* node)
     node->pre->next = node->next;
     node->next->pre = node->pre;
 }*/
-

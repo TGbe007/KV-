@@ -35,12 +35,12 @@ KVDBHandler::KVDBHandler(const std::string& db_file)
 		ofstream fout(expires_filename.c_str(), ios::app);
 		fout.close();
 	}
-	Createlog(log_Name,name,Warning_log);	
+	Createlog(log_Name, name, Warning_log);
 	Expires_Create();
 	Create_hashmaps();
 	Getsize_num = 0;
 }
-void KVDBHandler::modify_maps(const string& order, const string& key, const string& value,const int& offset)
+void KVDBHandler::modify_maps(const string& order, const string& key, const string& value, const int& offset)
 {
 	if (order == "Set")
 	{
@@ -51,7 +51,7 @@ void KVDBHandler::modify_maps(const string& order, const string& key, const stri
 		hash_map.del(key);
 	}
 }
-void KVDBHandler::modify_time_maps( const string& key,const int&_time,const string&order)
+void KVDBHandler::modify_time_maps(const string& key, const int& _time, const string& order)
 {
 	map<string, int>::iterator it = Living_time.begin();
 	if (order == "Set")
@@ -77,7 +77,10 @@ void KVDBHandler::Create_hashmaps()
 	Header obj;
 	if (!fin)
 	{
-		write_Error(Warning_log, "KVDB_INVALID_AOF_PATH");
+		ofstream one;
+		one.open(Warning_log.c_str(), ios::app | ios::out);
+		write_Error(Warning_log, "KVDB_INVALID_AOF_PATH", one);
+		one.close();
 	}
 	else
 	{
@@ -85,7 +88,7 @@ void KVDBHandler::Create_hashmaps()
 		{
 			int offset = fin.tellg();
 			fin.read((char*)(&obj), sizeof(int) * 2);
-			char *key = new char[obj.key_len + 1];
+			char* key = new char[obj.key_len + 1];
 			char* value;
 			if (obj.value_len == -1)
 			{
@@ -109,19 +112,20 @@ void KVDBHandler::Create_hashmaps()
 			}
 			else
 			{
-				hash_map.add(key,offset);
+				hash_map.add(key, offset);
 			}
 			delete[]value;
 			delete[]key;
 		}
 	}
+	fin.close();
 }
 void KVDBHandler::Expires_Create()
 {
 	ifstream fin(expires_filename.c_str(), ios::binary | ios::in);
 	map<string, int>::iterator it = Living_time.begin();
 	int length = Get_size(fin);
-	int key_length,_time;
+	int key_length, _time;
 	time_t timep;
 	time(&timep);
 	while (fin.tellg() != length)
@@ -154,10 +158,11 @@ void KVDBHandler::Expires_Create()
 		out.open(name.c_str(), ios::app | ios::binary | ios::out);
 		for (it = Living_time.begin(); it != Living_time.end();)
 		{
+
 			if ((*it).second < timep)//先判断是否过期，如果过期了就在原文件先删除，同时在map表里删除
 			{
 				string key = (*it).first;
-				Write(name, (*it).first, "0", "Del",out);
+				Write(name, (*it).first, "0", "Del", out);
 				it++;//为防止迭代器被删除，先把里面的key赋值给局部变量key，然后先让it++，在进行erase操作
 				Living_time.erase(key);
 			}
@@ -168,43 +173,46 @@ void KVDBHandler::Expires_Create()
 				Que.push(S);
 				it++;
 			}
-			
 		}
 		out.close();
 	}
 }
 int KVDBHandler::Set(const string& key, const string& value)
 {
-	write_Time(log_Name);
-	write_Operation(log_Name,"Set",key,value);
+	ofstream on;
+	on.open(log_Name.c_str(), ios::app | ios::out);
+	write_Time(log_Name, on);
+	write_Operation(log_Name, "Set", key, value, on);
 	if (key.length() == 0)
 	{
-		write_Error(log_Name,"KVDB_INVALID_KEY");
+		write_Error(log_Name, "KVDB_INVALID_KEY", on);
+		on.close();
 		return KVDB_INVALID_KEY;
 	}
 	else
 	{
-		start=clock();
+		start = clock();
 		out.open(name.c_str(), ios::app | ios::binary | ios::out);
-		int length=Write(name, key, value,"Set",out);
+		int length = Write(name, key, value, "Set", out);
 		out.close();
-		modify_maps("Set",key,value,length);
+		modify_maps("Set", key, value, length);
 		if (Living_time.find(key) != Living_time.end())
 		{
 			modify_time_maps(key, 0, "Del");//修改记录时间的map
 			Expires_Write(key, -1);//修改文件
 		}
-		//Lc.Put(key, value,hash_map);//LRUCache
+
+		finish = clock();
+		double  duration = (double)(finish - start);
+		write_Duration(log_Name, duration, on);
+		Write_filesize(on);
+		on.close();
 		purge_time++;
 		if (purge_time == 3000)
 		{
 			purge();
 			purge_time = 0;
 		}
-		finish = clock();
-		double  duration = (double)(finish - start);
-		write_Duration(log_Name,duration);
-		Write_filesize();
 		return KVDB_OK;
 	}
 }
@@ -213,7 +221,10 @@ int KVDBHandler::Display()//打代码用来检验操作结果是否正确的
 	ifstream fin(name.c_str(), ios::binary | ios::in);
 	if (!fin)
 	{
-		write_Error(Warning_log, "KVDB_INVALID_AOF_PATH");
+		ofstream on;
+		on.open(log_Name.c_str(), ios::app | ios::out);
+		write_Error(Warning_log, "KVDB_INVALID_AOF_PATH", on);
+		on.close();
 		return KVDB_INVALID_AOF_PATH;
 	}
 	int length = Get_size(fin);
@@ -232,7 +243,7 @@ int KVDBHandler::Display()//打代码用来检验操作结果是否正确的
 		}
 		else
 		{
-			char *key,*value;
+			char* key, * value;
 			key = new char[obj.key_len + 1];
 			value = new char[obj.value_len + 1];
 			memset(key, 0, obj.key_len + 1);
@@ -265,17 +276,19 @@ void KVDBHandler::changefile(const std::string& db_file)
 	out.open(name.c_str(), ios::app | ios::binary | ios::out);
 	out.close();
 }
-int KVDBHandler::purge()
+int KVDBHandler::purge()//整理文件操作
 {
-	write_Time(log_Name);
-	write_Operation(log_Name, "purge","0","0");
-	int* offset_order = new int[100000];
-	memset(offset_order, -1, sizeof(int)*100000);
+	ofstream on;
+	on.open(log_Name.c_str(), ios::app | ios::out);
+	write_Time(log_Name, on);
+	write_Operation(log_Name, "purge", "0", "0", on);
+	int* offset_order = new int[100000];//创建一个足够大的数组存放offset
+	memset(offset_order, -1, sizeof(int) * 100000);
 	hash_map.Get_offset_order(offset_order);
 	ifstream fin(name.c_str(), ios::binary | ios::in);
-	ofstream fout("temporary.txt", ios::app|ios::binary|ios::out);
+	ofstream fout("temporary.txt", ios::app | ios::out | ios::binary);
 	int i = 0;
-	while (offset_order[i] != -1)
+	while (offset_order[i] != -1)//遍历offset_order数组
 	{
 		Header obj;
 		fin.seekg(offset_order[i], ios::beg);
@@ -287,38 +300,40 @@ int KVDBHandler::purge()
 		memset(value, 0, obj.value_len + 1);
 		fin.read(key, obj.key_len);
 		fin.read(value, obj.value_len);
-		Write("temporary.txt", key, value, "Set",fout);
-		/*cout << key << " " << value << endl;*/
+		Write("temporary.txt", key, value, "Set", fout);//写入临时文件
 		delete[]key;
 		delete[]value;
 		i++;
 	}
-	fin.close();
 	fout.close();
-	remove(name.c_str());
-	rename("temporary.txt", name.c_str());
-	write_Operation(log_Name, "purge_finish","0","0");
+	fin.close();
+	remove(name.c_str());//删除原文件
+	rename("temporary.txt", name.c_str());//临时文件改名为原文件的名字
+	write_Operation(log_Name, "purge_finish", "0", "0", on);
+	on.close();
 	delete[]offset_order;
 	Create_hashmaps();
 	return KVDB_OK;
 }
 int KVDBHandler::Get(const string& key, string& value)
 {
-	write_Time(log_Name);
-	write_Operation(log_Name, "Get",key,"0");
-	clock_t start_get = clock();
+	ofstream on;//日志输出流
+	on.open(log_Name.c_str(), ios::app | ios::out);
 	Expires_Del();
-	//int state=Lc.Get(key, value,hash_map);//调用LRUCache,判断是否存在于其中
+	write_Time(log_Name, on);
+	write_Operation(log_Name, "Get", key, "0", on);
+	clock_t start_get = clock();
 	if (key.length() == 0)
 	{
-		write_Error(Warning_log,"KVDB_INVALID_KEY");
+		write_Error(Warning_log, "KVDB_INVALID_KEY", on);
+		on.close();
 		return KVDB_INVALID_KEY;
 	}
-	int offset = hash_map.get(key);
+	int offset = hash_map.get(key);//判断key是否存在如果存在返回offset
 	if (offset != -1)
 	{
 		ifstream fin(name.c_str(), ios::binary | ios::in);
-		fin.seekg(offset, fin.beg);
+		fin.seekg(offset, fin.beg);//直接跳转到数据的起点
 		Header obj;
 		fin.read((char*)(&obj), sizeof(int) * 2);
 		fin.seekg(obj.key_len, fin.cur);
@@ -330,11 +345,11 @@ int KVDBHandler::Get(const string& key, string& value)
 		delete[]_value;
 		fin.close();
 	}
-	//当state==1，value值已改变，写完日志就可以退出，state==2，key不存在;
 	clock_t finish_get = clock();
 	double  duration = (double)(finish_get - start_get);
-	write_Duration(log_Name, duration);
-	Write_filesize();
+	write_Duration(log_Name, duration, on);
+	Write_filesize(on);
+	on.close();
 	return KVDB_OK;
 }
 void KVDBHandler::Exit()
@@ -343,16 +358,19 @@ void KVDBHandler::Exit()
 	in.close();
 	cout << "数据库关闭成功，正在退出" << endl;
 }
-int KVDBHandler::Del(const std::string& key)
+int KVDBHandler::Del(const std::string& key)//删除元素
 {
-	write_Time(log_Name);
-	write_Operation(log_Name, "Del",key,"0");
+	ofstream on;//写日志的输出流
+	on.open(log_Name.c_str(), ios::app | ios::out);
+	write_Time(log_Name, on);
+	write_Operation(log_Name, "Del", key, "0", on);
 	start = clock();
 	Header obj;
 	string value;
 	if (key.length() == 0)
 	{
-		write_Error(Warning_log, "KVDB_INVALID_KEY");
+		write_Error(Warning_log, "KVDB_INVALID_KEY", on);
+		on.close();
 		return KVDB_INVALID_KEY;
 	}
 	else
@@ -361,11 +379,10 @@ int KVDBHandler::Del(const std::string& key)
 		if (value.size() != 0)
 		{
 			out.open(name.c_str(), ios::app | ios::binary | ios::out);
-			Write(name, key, value, "Del",out);
+			Write(name, key, value, "Del", out);//把value_len=-1，value为空的数据写入原文件
 			out.close();
 			cout << "Key值为" << key << "对应的数据已被删除" << endl;
-			modify_maps("Del", key, value,0);
-			//hash_map.SetNode(key, &LRUNode("0","0"), "erase");
+			modify_maps("Del", key, value, 0);//修改hash表
 			if (Living_time.find(key) != Living_time.end())
 			{
 				modify_time_maps(key, 0, "Del");//修改记录时间的map
@@ -376,11 +393,12 @@ int KVDBHandler::Del(const std::string& key)
 			cout << "文件中没有可删除的Key值" << endl;
 		finish = clock();
 		double  duration = (double)(finish - start);
-		write_Duration(log_Name, duration);
-		Write_filesize();
+		write_Duration(log_Name, duration, on);
+		Write_filesize(on);
+		on.close();
 		purge_time++;
-	    if (purge_time == 3000)
-		{	
+		if (purge_time == 3000)
+		{
 			purge();
 			purge_time = 0;
 		}
@@ -388,11 +406,14 @@ int KVDBHandler::Del(const std::string& key)
 	}
 
 }
-int KVDBHandler::expires(const std::string & key, int n)
+int KVDBHandler::expires(const std::string& key, int n)//设置元素的过期时间
 {
 	if (key.length() == 0)
 	{
-		write_Error(log_Name, "KVDB_INVALID_KEY");
+		ofstream on;
+		on.open(Warning_log.c_str(), ios::app | ios::out);
+		write_Error(log_Name, "KVDB_INVALID_KEY", on);
+		on.close();
 		return KVDB_INVALID_KEY;
 	}
 	time_t timep;
@@ -410,7 +431,7 @@ int KVDBHandler::expires(const std::string & key, int n)
 	Que.push(S);
 	return KVDB_OK;
 }
-int KVDBHandler::Get_size(ifstream &fin)
+int KVDBHandler::Get_size(ifstream& fin)//获取文件大小
 {
 	fin.seekg(0, fin.end);
 	int length = fin.tellg();
@@ -426,61 +447,38 @@ void KVDBHandler::Expires_Write(const string& key, const int& _time)//用于对e
 	out.write((char*)(&_time), sizeof(int));
 	out.close();
 }
-int KVDBHandler::Expires_Get(const string& key,int offset)
-{
-	ifstream fin(name.c_str(), ios::binary | ios::in);
-	int length = Get_size(fin);
-	fin.seekg(offset, ios::beg);
-	int key_length;
-	int _time;
-	while (fin.tellg() != length)
-	{
-		fin.read((char*)(&key_length), sizeof(int));
-		char* _key = new char[key_length + 1];
-		memset(_key, 0, key_length + 1);
-		fin.read(_key, key_length);
-		fin.read((char*)(&_time), sizeof(int));
-		if (strcmp(_key, key.c_str()) == 0)
-		{
-			return _time;
-		}
-		delete[]_key;
-	}
-	fin.close();
-	return 1;
-}
-int Write(const string& name, const string& key, const string& value,string order,ofstream &out)//直接对磁盘进行写操作只有Set和Del，加if区分开即可
+int Write(const string& name, const string& key, const string& value, string order, ofstream& out)//直接对磁盘进行写操作只有Set和Del，加if区分开即可
 {
 	ifstream fin(name.c_str(), ios::binary | ios::in);
 	fin.seekg(0, fin.end);
 	int length = fin.tellg();//获取当前的位置
 	fin.close();
 	Header obj;
-	obj.key_len = key.length(); 
+	obj.key_len = key.length();
 	if (order == "Set")
 		obj.value_len = value.length();
 	else if (order == "Del")
 		obj.value_len = -1;
 	out.write((char*)(&obj), sizeof(int) * 2);
 	out.write(key.c_str(), key.length());
-	if(order=="Set")
+	if (order == "Set")
 		out.write(value.c_str(), value.length());
 	return length;
-} 
+}
 void KVDBHandler::Expires_Del()
 {
 	time_t timep;
 	time(&timep);
 	map<string, int>::iterator it = Living_time.begin();
 	out.open(name.c_str(), ios::app | ios::binary | ios::out);
-	while (!Que.empty()&&Que.top()._time < timep)
+	while (!Que.empty() && Que.top()._time < timep)
 	{
 		if (Living_time.find(Que.top().key) != Living_time.end())
 		{
 			it = Living_time.find(Que.top().key);
 			if ((*it).second == Que.top()._time)
 			{
-				Write(name, Que.top().key, "0", "Del",out);//在原文件中删除
+				Write(name, Que.top().key, "0", "Del", out);//在原文件中删除
 				hash_map.del(Que.top().key);//在Hash表中删除
 				Living_time.erase(Que.top().key);
 				Expires_Write(Que.top().key, -1);
@@ -490,18 +488,14 @@ void KVDBHandler::Expires_Del()
 	}
 	out.close();
 }
-void KVDBHandler::Write_filesize()
+void KVDBHandler::Write_filesize(ofstream& out)
 {
 	if (Getsize_num != 30)
 	{
 		ifstream fin(name.c_str(), ios::binary | ios::in);
 		int length = Get_size(fin);
-		write_Filesize(log_Name, length);
+		write_Filesize(log_Name, length, out);
 		Getsize_num++;
 		fin.close();
-	}
-	else
-	{
-		write_Filesize(log_Name, -1);
 	}
 }

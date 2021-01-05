@@ -142,7 +142,7 @@
     <ClCompile Include="HashMap.cpp" />
     <ClCompile Include="KV数据库.cpp" />
     <ClCompile Include="logger.cpp" />
-    <ClCompile Include="LRUcache.cpp" />
+    <ClCompile Include="LRUCache.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
@@ -150,7 +150,7 @@
     <ClInclude Include="HashMap.h" />
     <ClInclude Include="KVDBHandler.h" />
     <ClInclude Include="logger.h" />
-    <ClInclude Include="LRUcache.h" />
+    <ClInclude Include="LRUCache.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,8 +1,7 @@
-#pragma once
+
 #include<stdio.h>
 #include<ctime>
 #include"KVDBHandler.h"
-
 class KVDBtest
 {
 private:
@@ -11,20 +10,26 @@ private:
 	KVDBHandler* handler;
 	int len;
 	int opcnt;
+	int size;
 public:
 	KVDBtest()
 	{
+		size = 10000;
 		handler = new KVDBHandler("test");
 		srand((unsigned)time(NULL));
-		key = new string[30000];
-		value = new string[30000];
+		key = new string[size];
+		value = new string[size];
 		len = 0;
 		opcnt = 0;
+	}
+	void same(string& p)
+	{
+		p = "1";
 	}
 	void randomString(string& p)//生成随机字符串
 	{
 		p.clear();
-		int len = rand() % 16 + 1;
+		int len = rand() % 20 + 1;
 		for (int j = 0; j < len; j++)
 		{
 			int a;
@@ -46,11 +51,11 @@ public:
 	void test()
 	{
 		int op = 0;
-		while (opcnt < 60000 || len < 30000)
+		while (opcnt < 3 * size || len < size)
 		{
 			if (op == 0)//set
 			{
-				if (len < 20000)
+				if (len < (size * 4 / 5))
 				{
 					randomString(key[len]);
 				}
@@ -79,11 +84,13 @@ public:
 				if (!(testvalue == value_))//数据库的返回值testvalue与实际对应的value值不符
 				{
 					printf("错误：key值为%s\nvalue值应为%s\n实际为%s\n", key[index].c_str(), value_.c_str(), testvalue.c_str());
-					printf("index=%d\nlen=%d\n", index, len);
+					printf("这是第%d个写入的数据\n已经写入%d个数据\n", index + 1, len);
+					double time = clock();
+					printf("用时%.3fs\n", time / 1000);
 					system("pause");
 					return;
 				}
-				if (value_.length() != 0)
+				if (value_.size() != 0)
 				{
 					printf("value值为%s\n", testvalue.c_str());
 				}
@@ -97,7 +104,7 @@ public:
 				int index = rand() % len;
 				string value_;
 				handler->Get(key[index], value_);
-				if (value_.length() != 0)//判断删除是否有效,若有效则把所有对应的value值清空
+				if (value_.size() != 0)//判断删除是否有效,若有效则把所有对应的value值清空
 				{
 					for (int i = 0; i < len; i++)
 					{
@@ -122,15 +129,15 @@ public:
 	}
 	int randomop()
 	{
-		if (len < 2000)
+		if (len < size / 10 && len < 100)
 		{
 			return 0;
 		}
-		else if (len < 20000)
+		else if (len < (size * 4 / 5))
 		{
 			return rand() % 3;
 		}
-		else if (len < 30000)
+		else if (len < size)
 		{
 			int result = rand() % 2;
 			return result == 0 ? result : result + 1;
@@ -149,6 +156,9 @@ public:
 };
 int main()
 {
+
 	KVDBtest test;
 	test.test();
+	double time = clock();
+	printf("用时%.3fs\n", time / 1000);
 }
